@@ -64,10 +64,10 @@ calculate.ozone_daily_report <- function(data){
     yDatR <- dbqa.round(as.vector(yDat),id.param=7) # solo dati ultimo anno, arrotondati (ma dovrebbero gia' esserlo)
     dDatR <- dbqa.round(as.vector(dDat),id.param=7) # solo dati ultimo giorno, arrotondati (ma dovrebbero gia' esserlo)
     ## - max giornaliero (con arrotondamento)
-    max.day <- dbqa.round(stat.period(x=as.vector(dDat),period=dday,necess=18,FUN=max),id.param=7)
+    max.day <- dbqa.round(stat.period(x=as.vector(dDat),period=dday,necess=1,FUN=max),id.param=7)
     hour.max.day <- Hour(index(dDat))[unlist(which.period(x=as.vector(dDat),
                                                           period=dday,
-                                                          necess=18,
+                                                          necess=1,
                                                           FUN=which.max))][1]
     # - orari di superamento 180 e 240
 #     hours.exc.180 <- squeeze(Hour(index(dDat))[which(dDatR>180)])
