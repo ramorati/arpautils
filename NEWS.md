@@ -1,8 +1,23 @@
+<<<<<<< .mine
+# arpautils 0.9.8 [2018-03-07]
+
+ * calculate.daily_report: risolto bug nella gestione del 01/01 con un solo giorno di elaborazione
+ * write.daily_report: risolto bug che cacellava le medie annuali per gli inquinanti CO e C6H6 
+ * modificati gli id elaborazione dei contatori annuali
+
 # arpautils 0.9.7 [2017-05-15]
 
  * calculate.ozone_daily_report: modificato il numero di dati necessari (da 18 a 1) per calcolare il massimo giornaliero sull'ora
 
 
+||||||| .r413
+=======
+# arpautils 0.9.7 [2017-05-15]
+
+ * calculate.ozone_daily_report: modificato il numero di dati necessari (da 18 a 1) per calcolare il massimo giornaliero sull'ora
+
+
+>>>>>>> .r414
 # arpautils 0.9.6 [2017-01-30]
 
  * dbqa.get.idcfgsens: risolto piccolo bug che si poteva manifestare al cambio di sensore
