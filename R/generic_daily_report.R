@@ -57,30 +57,48 @@ calculate.daily_report <- function(data,
                                    thr.hourly=NULL,
                                    thr.multihourly=NULL,
                                    NH=3){
-  
+ 
   Dat <- data$Dat
    
-  if(!is.null(Dat)){
+   if(!is.null(Dat)){
     ## 2) calcolo indicatori e loro validita'
     Time <- index(Dat)
     day <- Ymd(Time)
-    yDat <- last(Dat,'1 year') # solo dati ultimo anno
+    #yDat <- last(Dat,'1 year') # solo dati ultimo anno. Non funziona per un valore solo
+    if ( length(Dat) > 1) {
+      yDat <- last(Dat,'1 year')
+      } else {
+      yDat <- last(Dat)
+      }
     yTime <- index(yDat)
     yday <- Ymd(yTime)
-    dDat <- last(Dat,'1 day') # solo dati ultimo giorno
+    #dDat <- last(Dat,'1 day') # solo dati ultimo giorno. Non funziona per un valore solo
+    if ( length(Dat) > 1) {
+      dDat <- last(Dat,'1 day')
+    } else {
+      dDat <- last(Dat)
+    }
     dTime <- index(dDat)
     dday <- Ymd(dTime)
     yDatR <- dbqa.round(as.vector(yDat),id.param=id.param) # solo dati ultimo anno, arrotondati (ma dovrebbero gia' esserlo)
     dDatR <- dbqa.round(as.vector(dDat),id.param=id.param) # solo dati ultimo giorno, arrotondati (ma dovrebbero gia' esserlo)
     
     ## distingue dati orari-giornalieri
-    hourly <- difftime(Time[2],Time[1],units="hours")==1
-    daily  <- difftime(Time[2],Time[1],units="days")==1
+    hourly<-FALSE
+    daily<-FALSE 
+    if ( length(Time) > 1)  {
+      hourly <- difftime(Time[2],Time[1],units="hours")==1
+      daily  <- difftime(Time[2],Time[1],units="days")==1
+    }  else if ( length(Time) == 1)  {
+      daily<-TRUE   #qui faccio una forzatura: suppongo che se c'e' un dato solo sia giornaliero (il 01/01)
+    }
+
     if(!hourly & !daily) stop("cannot manage timestep!")
-  } else {
+  } else {  #fine check su Dat
     daily.report <- NULL
     hourly <- FALSE
-    daily <- FALSE
+    daily <- FALSE 
+    
   }
   
   if(hourly){
@@ -236,15 +254,7 @@ write.daily_report <- function(con,
                                ...) {
   
   ## elimina record del GIORNO-CONFIG_STAZ-PARAMETRO
-  dbqa.delete(con=con, tab="WEB_STAT",
-              keys=c("to_char(GIORNO,'YYYY-MM-DD')",
-                     "ID_CONFIG_STAZ",
-                     "ID_PARAMETRO"),
-              values=c(paste("'",format(DR$first.time.day,"%Y-%m-%d"),"'",sep=""),
-                       DR$id.staz,
-                       id.param),
-              verbose=verbose)
-  dbCommit(con)
+
   date4db <- function(x) {format(x,format="%Y-%m-%d %H:%M")}
   prov <- unlist(dbGetQuery(con,
                             paste("select COD_PRV from AA_ARIA.T$01$CONFIG_STAZIONI",
@@ -288,13 +298,28 @@ write.daily_report <- function(con,
                 to_date=c(1,8,9,10),
                 verbose=verbose,
                 ...)
-  }
+  }#fine definizione della funzione
   
   ## inserisce elaborazioni giornaliere floating
   # max med 8h (solo CO)
   if("max.ave.8h" %in% colnames(DR$daily.report) && !is.na(DR$daily.report$max.ave.8h)) {
     if(id.param==10) { 
-      dbqa.insert_elab(id_elab=3,
+      
+      id.elab=3
+      
+      dbqa.delete(con=con, tab="WEB_STAT",
+                  keys=c("to_char(GIORNO,'YYYY-MM-DD')",
+                         "ID_CONFIG_STAZ",
+                         "ID_PARAMETRO",
+                         "ID_ELABORAZIONE"),
+                  values=c(paste("'",format(DR$first.time.day,"%Y-%m-%d"),"'",sep=""),
+                           DR$id.staz,
+                           id.param, 
+                           id.elab),
+                  verbose=verbose)
+      dbCommit(con)
+      
+      dbqa.insert_elab(id_elab=id.elab,
                        v_elab=DR$daily.report$max.ave.8h,
                        type="F",
                        ts1=date4db(DR$first.time.day),
@@ -303,9 +328,25 @@ write.daily_report <- function(con,
                        ...)
     }
   }
+  
   # daily max
   if("max.day" %in% colnames(DR$daily.report) && !is.na(DR$daily.report$max.day)) {
-    dbqa.insert_elab(id_elab=88,
+    
+    id.elab=88
+    
+    dbqa.delete(con=con, tab="WEB_STAT",
+                keys=c("to_char(GIORNO,'YYYY-MM-DD')",
+                       "ID_CONFIG_STAZ",
+                       "ID_PARAMETRO",
+                       "ID_ELABORAZIONE"),
+                values=c(paste("'",format(DR$first.time.day,"%Y-%m-%d"),"'",sep=""),
+                         DR$id.staz,
+                         id.param, 
+                         id.elab),
+                verbose=verbose)
+    dbCommit(con)
+    
+    dbqa.insert_elab(id_elab=id.elab,
                      v_elab=DR$daily.report$max.day,
                      type="F",
                      ts1=date4db(DR$first.time.day+3600*DR$daily.report$hour.max.day),
@@ -315,7 +356,22 @@ write.daily_report <- function(con,
   }
   # daily mean
   if("mean.day" %in% colnames(DR$daily.report) && !is.na(DR$daily.report$mean.day)) {
-    dbqa.insert_elab(id_elab=2,
+    
+    id.elab=2
+    
+    dbqa.delete(con=con, tab="WEB_STAT",
+                keys=c("to_char(GIORNO,'YYYY-MM-DD')",
+                       "ID_CONFIG_STAZ",
+                       "ID_PARAMETRO",
+                       "ID_ELABORAZIONE"),
+                values=c(paste("'",format(DR$first.time.day,"%Y-%m-%d"),"'",sep=""),
+                         DR$id.staz,
+                         id.param, 
+                         id.elab),
+                verbose=verbose)
+    dbCommit(con)
+    
+    dbqa.insert_elab(id_elab=id.elab,
                      v_elab=DR$daily.report$mean.day,
                      type="F",
                      ts1=date4db(DR$first.time.day),
@@ -335,6 +391,19 @@ write.daily_report <- function(con,
       ide <- switch (as.character(id.param),
                      "1" = 122,
                      "5" = 130)
+      
+      dbqa.delete(con=con, tab="WEB_STAT",
+                  keys=c("to_char(GIORNO,'YYYY-MM-DD')",
+                         "ID_CONFIG_STAZ",
+                         "ID_PARAMETRO",
+                         "ID_ELABORAZIONE"),
+                  values=c(paste("'",format(DR$first.time.day,"%Y-%m-%d"),"'",sep=""),
+                           DR$id.staz,
+                           id.param, 
+                           ide),
+                  verbose=verbose)
+      dbCommit(con)
+      
       dbqa.insert_elab(id_elab=ide,
                        v_elab=DR$daily.report$cumul.daily.nexc,
                        type="I",
@@ -349,6 +418,18 @@ write.daily_report <- function(con,
     if(id.param==8) {
       ide <- switch (as.character(id.param),
                      "8" = 119)
+      dbqa.delete(con=con, tab="WEB_STAT",
+                  keys=c("to_char(GIORNO,'YYYY-MM-DD')",
+                         "ID_CONFIG_STAZ",
+                         "ID_PARAMETRO",
+                         "ID_ELABORAZIONE"),
+                  values=c(paste("'",format(DR$first.time.day,"%Y-%m-%d"),"'",sep=""),
+                           DR$id.staz,
+                           id.param, 
+                           ide),
+                  verbose=verbose)
+      dbCommit(con)
+      
       dbqa.insert_elab(id_elab=ide,
                        v_elab=DR$daily.report$cumul.hourly.nexc,
                        type="I",
@@ -364,6 +445,18 @@ write.daily_report <- function(con,
   if(id.param==10) {
     ide <- switch (as.character(id.param),
                    "10" = 118)
+    dbqa.delete(con=con, tab="WEB_STAT",
+                keys=c("to_char(GIORNO,'YYYY-MM-DD')",
+                       "ID_CONFIG_STAZ",
+                       "ID_PARAMETRO",
+                       "ID_ELABORAZIONE"),
+                values=c(paste("'",format(DR$first.time.day,"%Y-%m-%d"),"'",sep=""),
+                         DR$id.staz,
+                         id.param, 
+                         ide),
+                verbose=verbose)
+    dbCommit(con)
+    
     dbqa.insert_elab(id_elab=ide,
                      v_elab=DR$daily.report$cumul.ave8h.nexc,
                      type="I",
@@ -378,6 +471,8 @@ write.daily_report <- function(con,
   #   if(!is.null(unlist(DR$events))){
   # 
   #   }
-}
+  dbCommit(con)
+
+  }
 
 

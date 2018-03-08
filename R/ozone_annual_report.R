@@ -246,7 +246,7 @@ write.ozone_annual_report <- function(con,
                                 ID_CONFIG_STAZ =OAR$id.staz,
                                 COD_PRV        =prov,
                                 ID_PARAMETRO   =id.param,
-                                ID_ELABORAZIONE=c(128,85,89), #n.ore sup.120,180,240
+                                ID_ELABORAZIONE=c(128,10085,10089), #n.ore sup.120,180,240
                                 ID_EVENTO      =0,
                                 V_ELAB_I       =c(OAR$annual.report$cumul.nexc.120,
                                                   OAR$annual.report$cumul.nexc.180,

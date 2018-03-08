@@ -280,8 +280,8 @@ write.annual_report <- function(con,
   
   ## inserisce numero superamenti della media giornaliera (PM10 o SO2)
   if(id.param %in% c(1,5) & ("daily.nexc" %in% colnames(AR$annual.report))) { 
-    if(id.param==1) id.elab=122
-    if(id.param==5) id.elab=130
+    if(id.param==1) id.elab=10122
+    if(id.param==5) id.elab=10130
     flg.elab=as.numeric(!is.null(AR$annual.report$annual.efficiency) &&
                           AR$annual.report$annual.efficiency>=90)
     dbqa.insert(con=con, tab="WEB_STAT",
@@ -306,7 +306,7 @@ write.annual_report <- function(con,
   ## inserisce numero superamenti della media oraria (NO2 o SO2)
   if(id.param %in% c(1,8) & ("hourly.nexc" %in% colnames(AR$annual.report))) { 
     if(id.param==1) id.elab=121
-    if(id.param==8) id.elab=119
+    if(id.param==8) id.elab=10119
     flg.elab=as.numeric(!is.null(AR$annual.report$annual.efficiency) &&
                           AR$annual.report$annual.efficiency>=90)
     dbqa.insert(con=con, tab="WEB_STAT",
@@ -330,7 +330,7 @@ write.annual_report <- function(con,
   
   ## inserisce numero superamenti del max giorn.media 8h (CO)
   if(id.param %in% c(10) & ("ave8h.nexc" %in% colnames(AR$annual.report))) { 
-    if(id.param==10) id.elab=118
+    if(id.param==10) id.elab=10118
     flg.elab=as.numeric(!is.null(AR$annual.report$annual.efficiency) &&
                           AR$annual.report$annual.efficiency>=90)
     dbqa.insert(con=con, tab="WEB_STAT",
